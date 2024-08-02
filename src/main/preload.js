@@ -1,14 +1,24 @@
 // preload.js
 
-// All the Node.js APIs are available in the preload process.
-// It has the same sandbox as a Chrome extension.
-window.addEventListener('DOMContentLoaded', () => {
-    const replaceText = (selector, text) => {
-      const element = document.getElementById(selector)
-      if (element) element.innerText = text
-    }
+const { contextBridge, ipcRenderer } = require('electron');
+
+
+contextBridge.exposeInMainWorld('electronAPI', {
+
+  // Render to Main //
+  login: (credentials) => ipcRenderer.send('login', credentials),
+  // detectDisplays: (data) => ipcRenderer.send('detect_displays', data),
+  // detectSystem: (data) => ipcRenderer.send('detect_system', data),
+  // detectApps: (data) => ipcRenderer.send('detect_apps', data),
+  // checkWarnings: (data) => ipcRenderer.send('check_warnings', data),
+  // closeWarning: (data) => ipcRenderer.send('close_warning', data),
   
-    for (const dependency of ['chrome', 'node', 'electron']) {
-      replaceText(`${dependency}-version`, process.versions[dependency])
-    }
-  })
+  // Main to Render //
+  // onLoginError: (callback) => ipcRenderer.on('login-error', callback),
+  // sendCredentials: (callback) => ipcRenderer.on('send-credentials', callback),
+  // sendDisplayInfo: (callback) => ipcRenderer.on('send_displays_info', callback),
+  // sendSystemInfo: (callback) => ipcRenderer.on('send_system_info', callback),
+  // sendAppsInfo: (callback) => ipcRenderer.on('send_apps_info', callback),
+  // sendWarningInfo: (callback) => ipcRenderer.on('send_warning', callback),
+  
+  });

@@ -1,6 +1,6 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 
-// const path = require('path')
+const path = require('path')
 // const isDev = require('electron-is-dev')
 
 // require('@electron/remote/main').initialize()
@@ -11,8 +11,10 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       enableRemoteModule: true
+
     }
   })
 
@@ -22,6 +24,17 @@ function createWindow() {
 //       : `file://${path.join(__dirname, '../build/index.html')}`
 //   )
   win.loadURL("http://localhost:3000");
+  // Open the DevTools.
+  win.webContents.openDevTools()
+
+
+  // #### Matching credentials #### //
+  ipcMain.on('login', (event, credentials) => {
+    ({username, password} = credentials);
+    console.log("\nCredentials:")
+    console.log(username)
+    console.log(password)
+  });  
 }
 
 app.on('ready', createWindow)
