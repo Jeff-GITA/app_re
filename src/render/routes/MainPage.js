@@ -17,6 +17,7 @@ const MainPage = () => {
   const onWarning = () => {
     navigate("/warning-page")
   }
+
   return (
     <div className='container'>
         <Header title="Main Window" />
@@ -27,3 +28,4 @@ const MainPage = () => {
 }
 
 export default MainPage
+
