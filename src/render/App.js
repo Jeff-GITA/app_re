@@ -1,23 +1,22 @@
-// Using functions //
-import Header from "./components/Header";
-import { useState } from "react";
-import Login from "./components/Login";
 
+
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+
+import Login from "./routes/Login";
+import MainPage from "./routes/MainPage";
+import WarningPage from './routes/WarningPage';
 
 function App() {
 
-  const getUser = ({username, password}) => {
-    console.log("getUser:")
-    console.log(username, password)
-
-    window.electronAPI.login({ username, password });
-  }
-
   return (
-    <div className="container">
-      <Header title="Login" />
-      <Login getUser={getUser} />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/main-page" element={<MainPage />} />
+        <Route path="/warning-page" element={<WarningPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   );
 }
 export default App;

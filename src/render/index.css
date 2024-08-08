@@ -10,6 +10,12 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+.warning-message {
+  color: #fc031ce1;
+  font-style: italic;
+  font-size: 1.2em;
+}
+
 .container {
   max-width: 500px;
   margin: 30px auto;
