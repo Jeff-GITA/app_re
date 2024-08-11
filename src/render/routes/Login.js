@@ -13,33 +13,31 @@ const Login = () => {
     const onSubmit = (e) => {
         e.preventDefault();
 
-        // if (!username) {
-        //     alert("Please type your username.")
-        //     setUsername("")
-        //     setPassword("")
-        //     return
-        // }
-
-        // getUser({ username, password })
-        
         console.log("User Credentials:")
         console.log(username, password)
 
         // Send the credentials to the back //
         window.electronAPI.login({ username, password });
 
-        // Change from login to main page //
-        navigate('/main-page');
-
         setUsername("")
         setPassword("")
     }
 
-   
+    window.electronAPI.onLoginError((event, message) => {
+        document.getElementById('error_msg').textContent = message;
+
+    });
+
+    window.electronAPI.correctLogin((event, message) => {
+        console.log("Correct Login:", message);
+        // Change from login to main page //
+        navigate('/main-page');
+    });
+
     return (
 
         <div className="container">
-            
+
             <Header title="Login" />
 
             <form className="add-form" onSubmit={onSubmit}>
@@ -50,10 +48,18 @@ const Login = () => {
 
                 <div className="form-control">
                     <label>Password</label>
-                    <input type="text" placeholder="Type a password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
+                    <input type="password" placeholder="Type a password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
+                </div>
+                <div>
+                    {/* <label className='warning-message' id="error_msg"/> */}
+                    <label className='warning-message' id="error_msg"> </label>
+                </div>
+                <div>
+                    <input className="btn btn-block" type="submit" value="Login" />
                 </div>
 
-                <input className="btn btn-block" type="submit" value="Login" />
+
+
             </form>
         </div>
     )

@@ -15,7 +15,9 @@ const MainPage = () => {
   }
 
   const onWarning = () => {
-    navigate("/warning-page")
+    // Send the credentials to the back //
+    window.electronAPI.openWarinig("On Warning...");
+    // navigate("/warning-page")
   }
 
   return (

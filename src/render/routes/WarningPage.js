@@ -17,7 +17,10 @@ const WarningPage = () => {
 
     useEffect(() => {
         if (counter === 0) {
-            navigate('/main-page');
+            
+            // navigate('/main-page');
+            window.electronAPI.closeWarinig("Close Warning...");
+
         } else {
             const timer = setTimeout(() => {
                 setCounter(counter - 1);
@@ -27,12 +30,18 @@ const WarningPage = () => {
         }
     }, [counter, navigate]);
 
+    window.electronAPI.getWarningMsg((event, message) => {
+        document.getElementById('warning_msg').textContent = message;
+
+    });
+
     return (
         <div className='container'>
             <Header title="Warning" />
             <Button color="green" text="Return Main" onClick={onMain} />
+            <p className='warning-message' id='warning_msg'></p>
             <p className='warning-message'>
-                You will be redirected to the main page in {counter} seconds.
+                This window will be closed in {counter} seconds.
             </p>
         </div>
     )
