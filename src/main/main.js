@@ -67,6 +67,11 @@ function createMainWindow() {
   const displayBounds = screen.getPrimaryDisplay().bounds;
   console.log("Display bounds:", displayBounds);
 
+  const actionTimer = 100;
+  var isMoving = false;
+  var isResizing = false;
+
+
   if (platform === "linux") {
 
     console.log("\nConfiguring linux system...")
@@ -105,7 +110,6 @@ function createMainWindow() {
         mainWindow.maximize();
         // mainWindow.setFullScreen(true);
       }
-
     });
 
     mainWindow.on("move", () => {
@@ -214,8 +218,9 @@ function createMainWindow() {
     isMoreThan2Displays = displays.length >= 2;
 
     if (isMoreThan2Displays && isDisplayChecking) {
-      const message = "2 displays connected, pleas use just one."
-      event.reply('login-error', message);
+      const message = "2 displays connected, please use just one."
+      event.reply('login_error', message);
+      
     } else {
       getUser(event, username, password);
     };
@@ -332,12 +337,6 @@ function checkDisplays() {
 
 
 
-ipcMain.on('open_warning', (event, message) => {
-  console.log("\nWarning message:", message);
-  createWarningWindow()
-});
-
-
 function defaultCallback() {
   return new Promise((resolve, reject) => {
     console.log("Default callback executed");
@@ -345,7 +344,7 @@ function defaultCallback() {
   });
 };
 
-function createWarningWindow(message, callback = defaultCallback) {
+function createWarningWindow(message, callback=defaultCallback) {
 
   // Flag true when warning window is open //
   isWarningWindow = true;
@@ -491,7 +490,7 @@ function createWarningWindow(message, callback = defaultCallback) {
       setTimeout(() => {
         captureScreen(callback);
       }, 2000);
-      // setWindowProperties();
+      setWindowProperties();
     };
   });
 

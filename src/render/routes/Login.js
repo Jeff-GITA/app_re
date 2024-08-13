@@ -25,6 +25,7 @@ const Login = () => {
 
     window.electronAPI.onLoginError((event, message) => {
         document.getElementById('error_msg').textContent = message;
+        console.log("onLoginError:", message);
 
     });
 
