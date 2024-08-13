@@ -38,7 +38,6 @@ const WarningPage = () => {
     return (
         <div className='container'>
             <Header title="Warning" />
-            <Button color="green" text="Return Main" onClick={onMain} />
             <p className='warning-message' id='warning_msg'></p>
             <p className='warning-message'>
                 This window will be closed in {counter} seconds.

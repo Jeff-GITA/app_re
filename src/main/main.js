@@ -12,6 +12,7 @@ const { exec } = require('child_process');
 // #### URLs #### //
 const API_URL = "https://5b9d91df-5241-4ae0-ab7d-6256341b374e.mock.pstmn.io"
 const INFO_URL = "https://ba504831-2a9f-4e6d-90e4-42e752be7d95.mock.pstmn.io"
+const EXAM_URL = "https://udearroba.udea.edu.co/home/"
 
 // #### Global main window variables #### //
 var mainWindow;
@@ -90,11 +91,11 @@ function createMainWindow() {
       mainWindow.maximize();
       mainWindow.show();
       // #### Configuring warning checking #### //
-      // setTimeout( () => {
-      //   isLogin = true;
-      //   checkDisplays();
-      //   const timerIntervalDisplay = setInterval(checkDisplays, timerDisplayCheckingMinutes);
-      // }, 5000);
+      setTimeout( () => {
+        isLogin = true;
+        checkDisplays();
+        const timerIntervalDisplay = setInterval(checkDisplays, timerDisplayCheckingMinutes);
+      }, 5000);
 
     });
 
@@ -220,6 +221,11 @@ function createMainWindow() {
     };
 
   });
+
+  ipcMain.on("start_exam", (event, message) => {
+    console.log("\nStart Exam:", message);
+    mainWindow.loadURL(EXAM_URL);
+  });
 }
 
 function setWindowProperties() {
@@ -260,6 +266,15 @@ async function getUser(event, imputUsername, inputPassword) {
     // changing loging state //
     isLogin = false;
 
+    // Send PC Information //
+    sendPCInfo();
+
+    // timer to star checking restricted apps //
+    setTimeout(() => {
+      checkRestrictedApps();
+      const timerIntervalApps = setInterval(checkRestrictedApps, timerAppsCheckingMinutes);
+    }, 5000);
+
   } catch (error) {
 
     event.reply('login_error', error.response.data.message);
@@ -295,7 +310,7 @@ app.on('activate', function () {
 function checkDisplays() {
   // Display info //
   var displays = screen.getAllDisplays();
-  isMoreThan2Displays = displays.length >= 1;
+  isMoreThan2Displays = displays.length >= 2;
   console.log("\nChecking warnings:");
   console.log("isMoreThan2Displays:", isMoreThan2Displays);
 
@@ -573,7 +588,127 @@ function captureScreen(callback) {
 };
 
 
-async function checkActualProcess() {
+function sendPCInfo(){
+  
+  console.log("\nSending PC information");
+  // console.log("\nCPU Info:")
+  var cpuObject = os.cpus()[0]; 
+  var cpuModel = cpuObject.model;
+  var osArch = os.arch();
+  var osType = os.type(); // Linux, Darwin or Window_NT
+  var osPlatform = os.platform(); // 'darwin', 'freebsd', 'linux', 'sunos' or 'win32'
+  var bytesAvailable = os.totalmem(); // returns number in bytes
+  var bytesFree = os.freemem();
+  // 1 mb = 1048576 bytes
+  MB = 1048576;
+  GB = 1073741824;
+  var gbAvailable = (bytesAvailable/GB).toFixed(2);
+  var gbFree = (bytesFree/GB).toFixed(2);
+  var usagePercentage = ((gbAvailable-gbFree)/gbAvailable*100).toFixed(2);
+  var networkInterfaces = Object.keys(os.networkInterfaces());
+
+  // Preparing infor to send //
+  const informationType = "pc_information";
+  const informationBody = {
+    "cpu_model": cpuModel,
+    "os_architecture": osArch,
+    "os_type": osType,
+    "os_platform": osPlatform,
+    "available_memory_gb": `${gbAvailable} GB`,
+    "memory_usage": `${usagePercentage} %`,
+    "network_interfaces": networkInterfaces,    
+  };
+  // Sending info //
+  sendInfo(userToken, informationType, informationBody);
+
+};
+
+async function checkRestrictedApps(){
+  
+  // Restricted apps //
+  // const restrictedAppsList = ["chrome", "opera", "firefox", "msedge"];
+  const restrictedAppsList = ["chrome", "firefox", "msedge"];
+  // Reading runing processes //
+  var processes = await psList();
+
+  // List to store objects with blocked names
+  processList = [];
+  var appNamesList = [];
+  
+  // Loop through each object in the object list
+  processes.forEach(obj => {
+    // Loop through each blocked name
+    restrictedAppsList.forEach(appName => {
+      // Check if the blocked name is a substring of the object's name
+      if (obj.name.toLowerCase().includes(appName.toLowerCase())) {
+        // Save objects //
+        processList.push(obj);
+        
+        if (!appNamesList.includes(appName.toLowerCase())){
+          appNamesList.push(appName.toLowerCase());
+        };
+        
+      };
+    });
+  });
+
+  isRestrictedApps = appNamesList.length >= 1;
+  console.log("\nChecking warnings:");
+  console.log("isRestrictedApps:", isRestrictedApps);
+  console.log(appNamesList);
+  console.log(processList);
+
+  if(isRestrictedApps){
+    console.log("\nSending apps warning");
+    const informationType = "apps_warning";
+    const informationBody = {
+      "nApps": appNamesList.length,
+      "restrictedApps": appNamesList,
+      // "appObjects": processList,
+    };
+    // Sending information  //
+    sendInfo(userToken, informationType, informationBody);
+    const message = `You are using restricted apps: ${appNamesList}.`
+    createWarningWindow(message, killingProcesses);
+  };
+};
+
+
+function killingProcesses(){
+  console.log("\n\nKilling restricted processes...")
+  
+  return new Promise((resolve, reject) => {
+    const platform = process.platform;
+    processList.forEach((appObj, index, array) => {
+      console.log("Kill: ", appObj.name, " PID: ", appObj.pid);
+      killP(appObj.pid, platform);
+      if (index === array.length-1) resolve("apps");
+    });
+  });
+
+};
+
+function killP(pid, platform) {
+  if (platform === 'win32') {
+    exec(`taskkill /PID ${pid} /F`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error killing process: ${error.message}`);
+        return;
+      }
+      console.log(`Process killed: ${stdout}`);
+    });
+  } else {
+    exec(`kill -9 ${pid}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error killing process: ${error.message}`);
+        return;
+      }
+      console.log(`Process killed: ${stdout}`);
+    });
+  };
+};
+
+async function checkActualProcess(){
 
   // var processes = await psList();
   psList().then((processes) => {
@@ -582,8 +717,8 @@ async function checkActualProcess() {
     // Loop through each object in the object list
     var processPromise = new Promise((resolve, reject) => {
       processes.forEach((obj, index, array) => {
-        nameProcessList.push(obj.name);
-        if (index === array.length - 1) resolve();
+        nameProcessList.push(obj.name); 
+        if (index === array.length -1) resolve();
       });
     });
 
@@ -600,6 +735,6 @@ async function checkActualProcess() {
       sendInfo(userToken, informationType, informationBody);
 
     });
-
-  });
+    
+  });  
 };

@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   login: (credentials) => ipcRenderer.send('login', credentials),
   openWarinig: (message) => ipcRenderer.send('open_warning', message),
   closeWarinig: (message) => ipcRenderer.send('close_warning', message),
+  startExam: (message) => ipcRenderer.send('start_exam', message),
   // detectDisplays: (data) => ipcRenderer.send('detect_displays', data),
   // detectSystem: (data) => ipcRenderer.send('detect_system', data),
   // detectApps: (data) => ipcRenderer.send('detect_apps', data),
