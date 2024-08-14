@@ -316,6 +316,7 @@ function checkDisplays() {
   // Display info //
   var displays = screen.getAllDisplays();
   isMoreThan2Displays = displays.length >= 2;
+  warningType = "Displays";
   console.log("\nChecking warnings:");
   console.log("isMoreThan2Displays:", isMoreThan2Displays);
 
@@ -330,21 +331,22 @@ function checkDisplays() {
     // Sending information  //
     sendInfo(userToken, informationType, informationBody);
     const message = `Using ${displays.length} displays, please use just one.`
-    createWarningWindow(message);
+    createWarningWindow(message, warningType);
   };
 
 };
 
 
-
 function defaultCallback() {
   return new Promise((resolve, reject) => {
-    console.log("Default callback executed");
-    resolve("default");
+    console.log("\nDefault callback executed");
+    resolve("Promise resolved.");
   });
 };
 
-function createWarningWindow(message, callback=defaultCallback) {
+
+function createWarningWindow(message, warningType) {
+
 
   // Flag true when warning window is open //
   isWarningWindow = true;
@@ -488,7 +490,7 @@ function createWarningWindow(message, callback=defaultCallback) {
       warningWindow.close();
       isWarningWindow = false;
       setTimeout(() => {
-        captureScreen(callback);
+        captureScreen(warningType);
       }, 2000);
       setWindowProperties();
     };
@@ -497,6 +499,7 @@ function createWarningWindow(message, callback=defaultCallback) {
   warningWindow.on('closed', (e, cmd) => {
     console.log("\nWarning window completely closed.");
     isClosing = false;
+    warningWindow = null;
   });
 }
 
@@ -569,11 +572,17 @@ function captureScreen(callback) {
             // resolve(screenshotPath);
             console.log("\nScreenshot saved.");
             setTimeout(() => {
-              callback().then((answer) => {
-                if (answer === "apps") {
+              
+              if(warningType === "Displays"){
+                defaultCallback().then((answer) => {
+                  console.log(answer);
+                });
+              }else if(warningType === "Apps"){
+                killingProcesses().then((answer) => {
+                  console.log(answer);
                   checkActualProcess();
-                }
-              });
+                });
+              }
             }, timerCaptureKill);
           }
         })
@@ -652,6 +661,7 @@ async function checkRestrictedApps(){
   });
 
   isRestrictedApps = appNamesList.length >= 1;
+  warningType = "Apps";
   console.log("\nChecking warnings:");
   console.log("isRestrictedApps:", isRestrictedApps);
   console.log(appNamesList);
@@ -668,7 +678,7 @@ async function checkRestrictedApps(){
     // Sending information  //
     sendInfo(userToken, informationType, informationBody);
     const message = `You are using restricted apps: ${appNamesList}.`
-    createWarningWindow(message, killingProcesses);
+    createWarningWindow(message, warningType);
   };
 };
 
@@ -681,11 +691,11 @@ function killingProcesses(){
     processList.forEach((appObj, index, array) => {
       console.log("Kill: ", appObj.name, " PID: ", appObj.pid);
       killP(appObj.pid, platform);
-      if (index === array.length-1) resolve("apps");
+      if (index === array.length-1) resolve("Promise resolved.");;
     });
   });
-
 };
+
 
 function killP(pid, platform) {
   if (platform === 'win32') {
