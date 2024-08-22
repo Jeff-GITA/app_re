@@ -10,9 +10,14 @@ const { exec } = require('child_process');
 // const isDev = require('electron-is-dev')
 
 // #### URLs #### //
-const API_URL = "https://5b9d91df-5241-4ae0-ab7d-6256341b374e.mock.pstmn.io"
-const INFO_URL = "https://ba504831-2a9f-4e6d-90e4-42e752be7d95.mock.pstmn.io"
+// const API_URL = "https://5b9d91df-5241-4ae0-ab7d-6256341b374e.mock.pstmn.io"
+const API_URL = "https://biometria-api-develop.udea.edu.co/admissionExam/evalUdea"
+// const INFO_URL = "https://ba504831-2a9f-4e6d-90e4-42e752be7d95.mock.pstmn.io"
+const INFO_URL = "https://biometria-api-develop.udea.edu.co/admissionExam/evalUdea"
 const EXAM_URL = "https://udearroba.udea.edu.co/home/"
+const ID_ADMISSION = 20211
+const TOKEN_SECURITY = "13bqmrE5RBwj1Pj2FYxAshlQPyljjf8NZl4yZ5Fvm1wMJ0XnmcwCAgTqY6x0xuBC5K41n"
+
 
 // #### Global main window variables #### //
 var mainWindow;
@@ -30,7 +35,7 @@ var isRestrictedApps;
 var warningInfo;
 var processList = [];
 var isWarningWindow = false;
-var isDisplayChecking = true;
+var isDisplayChecking = false;
 
 
 // #### Timers #### //
@@ -255,15 +260,18 @@ function setWindowProperties() {
 async function getUser(event, imputUsername, inputPassword) {
   try {
 
-    // const response = await axios.get(`${API_URL}/users?username=jeff&password=0821`);
-    const response = await axios.get(`${API_URL}/users`, {
+    // const response = await axios.get("https://biometria-api-develop.udea.edu.co/admissionExam/evalUdea/checkCandidate?id_number=1152208094&password=123456&id_admission=20211");
+    
+    const response = await axios.get(`${API_URL}/checkCandidate`, {
       params: {
-        username: imputUsername,
+        id_number: imputUsername,
         password: inputPassword,
+        id_admission: ID_ADMISSION,
       }
     });
+
     // Capturing token //
-    userToken = response.data.token;
+    userToken = response.data;
     console.log("\nCorrect Login:")
     console.log(`User Token: ${userToken}\n`);
     // Change to main window //
@@ -513,14 +521,14 @@ function sendInfo(sendToken, sendType, sendBody) {
     console.log("Type of request:", sendType);
     console.log("Body:", sendBody);
 
-    axios.post(`${INFO_URL}/information`, sendBody, {
+    axios.post(`${INFO_URL}/sendWarnings`, sendBody, {
       headers: {
-        'Content-Type': 'application/json',
+        'Token-Security': TOKEN_SECURITY,
       },
-      params: {
-        "token": sendToken,
-        "type": sendType,
-      },
+      // params: {
+      //   "token": sendToken,
+      //   "type": sendType,
+      // },
     })
       .then(function (response) {
         console.log("\nInformation sent.");
@@ -555,8 +563,20 @@ function captureScreen(callback) {
         // console.log("sending screenshot...")
         const sendImage = screenSource.thumbnail.toDataURL();
         const informationType = "screenshot_warning";
+        // const informationBody = {
+        //   "screenshot": sendImage,
+        // };
         const informationBody = {
-          "screenshot": sendImage,
+          "identification": userToken,
+          "type_log": 2,
+          "remoteControl": false,
+          "externalDevices": false,
+          "externalScreen": true,
+          "description": `Software sospechoso: ${appNamesList}`,
+          "information": sendImage,
+          // "nApps": appNamesList.length,
+          // "restrictedApps": appNamesList,
+          // "appObjects": processList,
         };
         // Sending information  //
         sendInfo(userToken, informationType, informationBody);
@@ -617,14 +637,26 @@ function sendPCInfo(){
 
   // Preparing infor to send //
   const informationType = "pc_information";
+  // const informationBody = {
+  //   "cpu_model": cpuModel,
+  //   "os_architecture": osArch,
+  //   "os_type": osType,
+  //   "os_platform": osPlatform,
+  //   "available_memory_gb": `${gbAvailable} GB`,
+  //   "memory_usage": `${usagePercentage} %`,
+  //   "network_interfaces": networkInterfaces,    
+  // };
   const informationBody = {
-    "cpu_model": cpuModel,
-    "os_architecture": osArch,
-    "os_type": osType,
-    "os_platform": osPlatform,
-    "available_memory_gb": `${gbAvailable} GB`,
-    "memory_usage": `${usagePercentage} %`,
-    "network_interfaces": networkInterfaces,    
+    "identification": userToken,
+    "type_log": 1,
+    "remoteControl": false,
+    "externalDevices": false,
+    "externalScreen": true,
+    "description": `PC info`,
+    "information": "CPU",
+    // "nApps": appNamesList.length,
+    // "restrictedApps": appNamesList,
+    // "appObjects": processList,
   };
   // Sending info //
   sendInfo(userToken, informationType, informationBody);
@@ -671,8 +703,15 @@ async function checkRestrictedApps(){
     console.log("\nSending apps warning");
     const informationType = "apps_warning";
     const informationBody = {
-      "nApps": appNamesList.length,
-      "restrictedApps": appNamesList,
+      "identification": userToken,
+      "type_log": 2,
+      "remoteControl": false,
+      "externalDevices": false,
+      "externalScreen": true,
+      "description": `Software sospechoso: ${appNamesList}`,
+      "information": "",
+      // "nApps": appNamesList.length,
+      // "restrictedApps": appNamesList,
       // "appObjects": processList,
     };
     // Sending information  //

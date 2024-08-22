@@ -43,13 +43,13 @@ const Login = () => {
 
             <form className="add-form" onSubmit={onSubmit}>
                 <div className="form-control">
-                    <label>Username</label>
-                    <input type="text" placeholder="Type a username" value={username} onChange={(e) => setUsername(e.target.value)}></input>
+                    <label>ID</label>
+                    <input type="text" placeholder="Type your ID" value={username} onChange={(e) => setUsername(e.target.value)}></input>
                 </div>
 
                 <div className="form-control">
                     <label>Password</label>
-                    <input type="password" placeholder="Type a password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
+                    <input type="password" placeholder="Type your password" value={password} onChange={(e) => setPassword(e.target.value)}></input>
                 </div>
                 <div>
                     {/* <label className='warning-message' id="error_msg"/> */}
